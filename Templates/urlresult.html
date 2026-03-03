@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Result</title>
+    <style>
+        body {
+            font-family: Arial;
+            text-align: center;
+            background-color: #f4f4f4;
+            margin-top: 100px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            width: 500px;
+            margin: auto;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
+
+        .safe {
+            color: green;
+            font-size: 22px;
+        }
+
+        .phishing {
+            color: red;
+            font-size: 22px;
+        }
+
+        a {
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            color: #007BFF;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Result</h1>
+
+    {% if "SAFE" in result %}
+        <div class="safe">{{ result }}</div>
+    {% else %}
+        <div class="phishing">{{ result }}</div>
+    {% endif %}
+
+    <a href="/">Check Another URL</a>
+</div>
+
+</body>
+</html>
