@@ -1,4 +1,3 @@
-import re
 import math
 from urllib.parse import urlparse
 
@@ -8,15 +7,26 @@ SUSPICIOUS_WORDS = [
     "confirm","free","bonus","crypto"
 ]
 
+POPULAR_BRANDS = [
+    "google","paypal","facebook","amazon",
+    "microsoft","apple","github"
+]
+
+SUSPICIOUS_TLDS = [
+    "xyz","top","ru","tk","ml","ga"
+]
+
+
 def shannon_entropy(url):
     prob = [float(url.count(c)) / len(url) for c in dict.fromkeys(list(url))]
     entropy = - sum([p * math.log2(p) for p in prob])
     return entropy
 
+
 def extract_features(url):
 
     parsed = urlparse(url)
-    domain = parsed.netloc
+    domain = parsed.netloc.lower()
 
     url_length = len(url)
     domain_length = len(domain)
@@ -26,6 +36,10 @@ def extract_features(url):
     digits = sum(c.isdigit() for c in url)
     hyphens = url.count('-')
     dots = url.count('.')
+
+    # digits inside domain (important for typosquatting)
+    domain_digits = sum(c.isdigit() for c in domain)
+
     at_symbol = 1 if '@' in url else 0
     double_slash = 1 if url.count('//') > 1 else 0
 
@@ -40,6 +54,16 @@ def extract_features(url):
 
     long_subdomain = 1 if domain_length > 25 else 0
 
+    # brand impersonation feature
+    brand_flag = 0
+    for brand in POPULAR_BRANDS:
+        if brand in domain:
+            brand_flag = 1
+
+    # suspicious TLD feature
+    tld = domain.split('.')[-1]
+    suspicious_tld = 1 if tld in SUSPICIOUS_TLDS else 0
+
     return [
         url_length,
         domain_length,
@@ -48,6 +72,7 @@ def extract_features(url):
         digits,
         hyphens,
         dots,
+        domain_digits,
         at_symbol,
         double_slash,
         letter_ratio,
@@ -55,5 +80,7 @@ def extract_features(url):
         suspicious_score,
         https,
         entropy,
-        long_subdomain
+        long_subdomain,
+        brand_flag,
+        suspicious_tld
     ]
