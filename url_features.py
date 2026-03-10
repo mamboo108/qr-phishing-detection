@@ -1,43 +1,29 @@
 import math
 from urllib.parse import urlparse
 
-SUSPICIOUS_WORDS = ["login","verify","secure","account","update","bank","paypal","password","confirm","free","bonus","crypto"]
-SUSPICIOUS_TLDS = ["xyz","top","ru","tk","ml","ga"]
+SUSPICIOUS_WORDS = ["login","verify","secure","account","update","bank","paypal","password","confirm"]
 
 def shannon_entropy(url):
     if not url: return 0
     prob = [float(url.count(c)) / len(url) for c in dict.fromkeys(list(url))]
-    entropy = - sum([p * math.log2(p) for p in prob])
-    return entropy
+    return - sum([p * math.log2(p) for p in prob])
 
-def extract_features(url):
-    parsed = urlparse(url)
+def extract_url_features(url):
+    parsed = urlparse(str(url))
     domain = parsed.netloc.lower()
+    url_str = str(url)
+    url_len = len(url_str)
     
-    url_length = len(url)
-    domain_length = len(domain)
-    subdomains = max(0, domain.count('.') - 1)
-    
-    letters = sum(c.isalpha() for c in url)
-    digits = sum(c.isdigit() for c in url)
-    domain_digits = sum(c.isdigit() for c in domain)
-    
-    at_symbol = 1 if '@' in url else 0
-    double_slash = 1 if url.count('//') > 1 else 0
-    letter_ratio = letters/url_length if url_length else 0
-    digit_ratio = digits/url_length if url_length else 0
-    https = 1 if url.startswith("https") else 0
-    
-    suspicious_score = sum(word in url.lower() for word in SUSPICIOUS_WORDS)
-    entropy = shannon_entropy(url)
-    long_subdomain = 1 if domain_length > 25 else 0
-    
-    tld = domain.split('.')[-1]
-    suspicious_tld = 1 if tld in SUSPICIOUS_TLDS else 0
+    letters = sum(c.isalpha() for c in url_str)
+    digits = sum(c.isdigit() for c in url_str)
+    entropy = shannon_entropy(url_str)
 
     return [
-        url_length, domain_length, subdomains, letters, digits, 
-        url.count('-'), url.count('.'), domain_digits, at_symbol, 
-        double_slash, letter_ratio, digit_ratio, suspicious_score, 
-        https, entropy, long_subdomain, suspicious_tld
+        url_len, len(domain), domain.count('.'), letters, digits, 
+        url_str.count('-'), url_str.count('.'), sum(c.isdigit() for c in domain),
+        1 if '@' in url_str else 0, 1 if url_str.count('//') > 1 else 0,
+        letters/url_len if url_len > 0 else 0, digits/url_len if url_len > 0 else 0,
+        sum(word in url_str.lower() for word in SUSPICIOUS_WORDS),
+        1 if url_str.startswith("https") else 0, entropy, 
+        1 if len(domain) > 25 else 0, 0
     ]

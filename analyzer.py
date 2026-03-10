@@ -1,53 +1,57 @@
 import cv2
-import numpy as np
 import pickle
+import os
+from qr_features import get_qr_features
+from url_analyzer import analyze_url
 
-model = pickle.load(open("qr_model.pkl","rb"))
+# Load QR Model
+try:
+    qr_model = pickle.load(open("qr_model.pkl", "rb"))
+except:
+    qr_model = None
+
 detector = cv2.QRCodeDetector()
 
-def preprocess(img):
-    img = cv2.resize(img, (400,400))
-    img = cv2.GaussianBlur(img,(3,3),0)
-    return img
-
-def get_features(img):
-
-    img = preprocess(img)
-
-    data, _, _ = detector.detectAndDecode(img)
-    decodable = 1 if data != "" else 0
-
-    h, w = img.shape
-    img[int(h*0.4):int(h*0.6), int(w*0.4):int(w*0.6)] = 255
-
-    ratio = np.sum(img < 128) / img.size
-    variance = np.var(img)
-    symmetry = np.mean(img == cv2.flip(img,1))
-    noise = np.std(cv2.GaussianBlur(img,(5,5),0) - img)
-    size = img.shape[0]
-
-    edges = cv2.Canny(img,100,200)
-    edge_density = np.sum(edges>0) / img.size
-
-    contours,_ = cv2.findContours(img,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-    contour_count = len(contours)
-
-    quiet_zone = np.mean(img[0:15,:] == 255)
-    blur = cv2.Laplacian(img,cv2.CV_64F).var()
-
-    return [
-        ratio, variance, symmetry, noise, size,
-        edge_density, contour_count, quiet_zone,
-        blur, decodable
-    ]
-
 def analyze_qr(path):
+    img = cv2.imread(path)
+    if img is None: 
+        return {"status": "Fake", "reason": "Invalid Image File."}
 
-    img = cv2.imread(path,0)
-    if img is None:
-        return "Invalid image"
+    # --- LAYER 1: PHYSICAL CHECK ---
+    q_feats = get_qr_features(img)
+    
+    if qr_model:
+        # Get probability to be less "aggressive" with flags
+        probs = qr_model.predict_proba([q_feats])[0] # [Prob_Safe, Prob_Fake]
+        
+        # If the model is more than 70% sure it's a fake/sticker
+        if probs[1] > 0.70:
+            return {
+                "status": "Fake",
+                "reason": f"Physical Structure Anomaly: Potential sticker overlay detected (Confidence: {round(probs[1]*100, 1)}%)."
+            }
 
-    feats = get_features(img)
-    pred = model.predict([feats])[0]
+    # --- LAYER 2: DIGITAL CHECK ---
+    data, _, _ = detector.detectAndDecode(img)
+    
+    if not data:
+        # If structure is fine but we can't read it
+        return {
+            "status": "Safe Structure", 
+            "reason": "The physical QR is safe, but no readable URL/data was found inside."
+        }
 
-    return "✅ SAFE QR" if pred==0 else "❌ FAKE QR"
+    # URL Check (Levenshtein + ML)
+    url_verdict = analyze_url(data)
+    
+    if "✅ SAFE" in url_verdict:
+        return {
+            "status": "Safe", 
+            "reason": f"Physical structure is genuine and URL is verified: {data}"
+        }
+    else:
+        # Here, the QR looks real, but the website it goes to is dangerous
+        return {
+            "status": "Fake", 
+            "reason": f"Physical structure is safe, but URL is MALICIOUS: {url_verdict}"
+        }

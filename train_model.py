@@ -1,27 +1,20 @@
 import pandas as pd
 import pickle
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, roc_auc_score
 
-df = pd.read_csv("qr_features.csv")
+# Load your physical QR features CSV
+df = pd.read_csv("qr_features.csv") 
 
-print("Dataset balance:")
-print(df["label"].value_counts())
+# Drop non-feature columns
+# Ensure your CSV columns match the 9 features in get_qr_features
+X = df.drop(columns=['label', 'decodable'], errors='ignore')
 
-X = df.drop("label",axis=1)
-y = df["label"].map({"benign":0,"malicious":1})
+# Mapping: Benign (Safe) -> 0, Malicious (Fake) -> 1
+y = df["label"].map({"benign": 0, "malicious": 1})
 
-X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2)
+model = RandomForestClassifier(n_estimators=200, random_state=42)
+model.fit(X, y)
 
-model = RandomForestClassifier(n_estimators=200)
-model.fit(X_train,y_train)
-
-pred = model.predict(X_test)
-prob = model.predict_proba(X_test)[:,1]
-
-print("Accuracy:", accuracy_score(y_test,pred))
-print("AUC:", roc_auc_score(y_test,prob))
-
-pickle.dump(model, open("qr_model.pkl","wb"))
-print("✅ qr_model.pkl saved")
+with open("qr_model.pkl", "wb") as f:
+    pickle.dump(model, f)
+print("✅ QR Structural Model trained and saved.")

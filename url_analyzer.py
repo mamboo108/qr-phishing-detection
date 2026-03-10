@@ -2,63 +2,51 @@ import pickle
 import pandas as pd
 import Levenshtein
 from urllib.parse import urlparse
-from url_features import extract_features
+from url_features import extract_url_features
 
 # Load Model
 try:
-    model = pickle.load(open("url_model.pkl", "rb"))
-except FileNotFoundError:
-    model = None
+    url_model = pickle.load(open("url_model.pkl", "rb"))
+except:
+    url_model = None
 
-# Load Safe Database for Layer 1 & 2
-try:
-    safe_df = pd.read_csv("url_dataset/safe_urls.csv")
-    # Store unique domains from your 500+ URLs
-    SAFE_DOMAINS = list(set([urlparse(str(u)).netloc.replace("www.", "").lower() for u in safe_df["URL"]]))
-except Exception:
-    SAFE_DOMAINS = []
+# Load Safe Database for Whitelist and Levenshtein
+def get_safe_domains():
+    try:
+        # We load both safe_urls.csv and extra_safe_url.csv from your folder
+        s1 = pd.read_csv("url_dataset/safe_urls.csv")
+        s2 = pd.read_csv("url_dataset/extra_safe_url.csv")
+        all_urls = pd.concat([s1.iloc[:,0], s2.iloc[:,0]])
+        return list(set([urlparse(str(u)).netloc.replace("www.", "").lower() for u in all_urls if len(str(u)) > 3]))
+    except:
+        return []
 
-def normalize_url(url):
-    url = url.strip().lower()
-    if not url.startswith(("http://", "https://")):
-        url = "http://" + url
-    return url
+SAFE_DOMAINS = get_safe_domains()
 
 def analyze_url(url):
-    if not url: return "Please enter a URL."
+    url = url.strip().lower()
+    if not url.startswith(("http", "https")):
+        url = "http://" + url
     
-    full_url = normalize_url(url)
-    parsed = urlparse(full_url)
+    parsed = urlparse(url)
     netloc = parsed.netloc.replace("www.", "")
-    current_main = netloc.split('.')[0] # e.g. 'g00gle'
 
-    # --- LAYER 1: EXACT MATCH (DATABASE) ---
+    # 1. Whitelist
     if netloc in SAFE_DOMAINS:
-        return "✅ SAFE URL (Verified in Trusted Database)"
+        return "✅ SAFE: Found in Trusted Database."
 
-    # --- LAYER 2: SIMILARITY CHECK (TYPOSQUATTING) ---
-    # We check if the input looks like ANY site in your safe_urls.csv
+    # 2. Levenshtein (Visual Look-alikes)
+    current_main = netloc.split('.')[0]
     for safe_domain in SAFE_DOMAINS:
         safe_main = safe_domain.split('.')[0]
+        if 0 < Levenshtein.distance(current_main, safe_main) <= 1:
+            return f"❌ FRAUD: Visual look-alike of trusted site {safe_domain}."
+
+    # 3. Machine Learning
+    if url_model:
+        feats = extract_url_features(url)
+        probs = url_model.predict_proba([feats])[0] # [Prob_Phish, Prob_Safe]
+        if probs[0] > 0.80:
+            return f"❌ FRAUD: ML Phishing Detection ({round(probs[0]*100, 1)}% risk)."
         
-        # Levenshtein distance: 1 or 2 means it's a visual trick (g00gle vs google)
-        dist = Levenshtein.distance(current_main, safe_main)
-        if 0 < dist <= 2:
-            return f"❌ PHISHING URL (Detected as a look-alike of {safe_domain})"
-
-    # Extra Heuristic: Obfuscation
-    if "@" in netloc:
-        return "❌ PHISHING URL (Obfuscation/@ symbol detected)"
-
-    # --- LAYER 3: MACHINE LEARNING ---
-    if model is None:
-        return "⚠️ Error: ML Model not found. Please train it first."
-        
-    features = extract_features(full_url)
-    prediction = model.predict([features])[0]
-    probs = model.predict_proba([features])[0] # [Phish_Prob, Safe_Prob]
-
-    if prediction == 1:
-        return f"✅ SAFE URL\nML Confidence: {round(probs[1]*100, 2)}%"
-    else:
-        return f"❌ PHISHING URL\nML Confidence: {round(probs[0]*100, 2)}%"
+    return "✅ SAFE: URL passed all digital checks."
