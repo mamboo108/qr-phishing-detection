@@ -36,20 +36,13 @@ def index():
 
     return render_template("index.html")
 
-@app.route("/url", methods=["GET", "POST"])
-def url_index():
-    result = None
-    if request.method == "POST":
-        url = request.form.get("url")
-        if url:
-            result = analyze_url(url)
-            # Sanitize result to prevent XSS
-            result = html.escape(result)
-    return render_template("urlindex.html", result=result)
+
 
 @app.route("/api/scan", methods=["POST"])
 def api_scan():
     data = request.json.get("image", "")
+    text_data = request.json.get("text", None)
+    
     if not data:
         return jsonify({"status": "Error", "reason": "No image provided"})
         
@@ -65,7 +58,7 @@ def api_scan():
     except Exception as e:
         return jsonify({"status": "Error", "reason": "Invalid image format"})
         
-    report = analyze_qr(path)
+    report = analyze_qr(path, text_data)
     
     # Optional cleanup of the file if not needed:
     # os.remove(path)

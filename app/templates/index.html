@@ -917,21 +917,56 @@
             document.getElementById('file-input').value = '';
             resetResults();
         }
-        function decodeQR(dataUrl) {
+        function decodeQR(dataUrl, fallbackText = null) {
             showResultLoading();
-            // Send Base64 image to backend for structural and URL analysis
+            if (fallbackText) {
+                sendToBackend(dataUrl, fallbackText);
+                return;
+            }
+            const image = new Image();
+            image.onload = function () {
+                const MAX_WIDTH = 800; // Limit processing sizes
+                let width = image.width;
+                let height = image.height;
+                if (width > MAX_WIDTH) {
+                    height = Math.round((height * MAX_WIDTH) / width);
+                    width = MAX_WIDTH;
+                }
+                
+                const canvas = document.getElementById('qr-canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(image, 0, 0, width, height);
+                
+                let codeText = null;
+                try {
+                    const imageData = ctx.getImageData(0, 0, width, height);
+                    const code = jsQR(imageData.data, width, height);
+                    if (code) codeText = code.data;
+                } catch (e) {
+                    console.error("jsQR Error", e);
+                }
+                
+                const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                sendToBackend(resizedDataUrl, codeText);
+            };
+            image.src = dataUrl;
+        }
+
+        function sendToBackend(dataUrl, textPayload) {
             fetch('/api/scan', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: dataUrl })
+                body: JSON.stringify({ image: dataUrl, text: textPayload })
             })
             .then(res => res.json())
             .then(data => {
-                const isSafe = (data.status === "Safe");
+                const isSafe = (data.status === "Safe" || data.status.includes("SAFE"));
                 showResult(data.reason, isSafe);
             })
             .catch(err => {
-                showResult('Server error evaluating QR code.', false);
+                showResultError('Server error evaluating QR code.');
             });
         }
         function showResultLoading() {
@@ -980,15 +1015,15 @@
                         // We will use jsQR purely to know WHEN a QR is visible in camera
                         const code = jsQR(imageData.data, imageData.width, imageData.height);
                         if (code) {
-                            const dataUrl = canvas.toDataURL('image/png');
+                            const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                             const img = document.getElementById('preview-img');
                             img.src = dataUrl;
                             img.style.display = 'block';
                             document.getElementById('upload-placeholder').style.display = 'none';
                             document.getElementById('clear-btn').style.display = 'flex';
                             closeCamera();
-                            // Pass to backend instead of local evaluation
-                            decodeQR(dataUrl);
+                            // Pass to backend with text
+                            decodeQR(dataUrl, code.data);
                         }
                     }, 300);
                 })
@@ -1007,8 +1042,9 @@
             img.style.display = 'block';
             document.getElementById('upload-placeholder').style.display = 'none';
             document.getElementById('clear-btn').style.display = 'flex';
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
             closeCamera();
-            decodeQR(dataUrl);
+            decodeQR(dataUrl, code ? code.data : null);
         }
         function closeCamera() {
             if (cameraInterval) { clearInterval(cameraInterval); cameraInterval = null; }

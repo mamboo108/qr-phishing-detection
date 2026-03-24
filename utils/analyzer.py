@@ -12,7 +12,7 @@ except:
 
 detector = cv2.QRCodeDetector()
 
-def analyze_qr(path):
+def analyze_qr(path, fallback_text=None):
     img = cv2.imread(path)
     if img is None: 
         return {"status": "Fake", "reason": "Invalid Image File."}
@@ -37,13 +37,16 @@ def analyze_qr(path):
     # --- LAYER 2: DIGITAL CHECK ---
     data, _, _ = detector.detectAndDecode(img)
     
+    if not data and fallback_text:
+        data = fallback_text
+        
     if not data:
-        # If structure is fine but we can't read it
+        # If structure is fine but we can't read it natively or via fallback
         return {
             "status": "Safe Structure", 
             "reason": "The physical QR is safe, but no readable URL/data was found inside."
         }
-
+        
     # URL Check (Levenshtein + ML)
     url_verdict = analyze_url(data)
     

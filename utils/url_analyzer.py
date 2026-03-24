@@ -2,6 +2,7 @@ import pickle
 import pandas as pd
 import Levenshtein
 from urllib.parse import urlparse, parse_qs
+import re
 from utils.url_features import extract_url_features
 
 # Load Model
@@ -26,15 +27,28 @@ SAFE_DOMAINS = get_safe_domains()
 def analyze_url(url):
     url = url.strip()
     
-    # Check for protocol smuggling BEFORE assigning default http
+    # 1. Clean dataset string artifacts (e.g. "316256 http://... Name: url, dtype: object")
+    if "dtype: object" in url:
+        match = re.search(r'(https?://[^\s]+)', url)
+        if match:
+            url = match.group(1)
+        else:
+            return "❌ FRAUD: Malformed QR payload (Data anomaly detected)."
+            
+    # 2. Check for protocol smuggling
     if "javascript:" in url.lower() or "data:" in url.lower():
         return "❌ FRAUD: Dangerous protocol scheme detected! (Possible XSS or Data Exfiltration)"
     
-    url = url.lower()
-    if not url.startswith(("http", "https")):
-        url = "http://" + url
+    url_lower = url.lower()
     
-    parsed = urlparse(url)
+    # 3. Enforce Strict HTTPS
+    if url_lower.startswith("http://"):
+        return "❌ FRAUD: Insecure HTTP connection detected! Verified URLs must use HTTPS."
+        
+    if not url_lower.startswith("https://"):
+        url = "https://" + url
+    
+    parsed = urlparse(url.lower())
     netloc = parsed.netloc.replace("www.", "")
     
     # Check for Open Redirects in query parameters
