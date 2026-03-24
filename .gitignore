@@ -1,4 +1,21 @@
+# Datasets and Media
 dataset/
+url_dataset/
 uploads/
+*.csv
+
+# Models
 *.pkl
+*.pk1
+
+# Python
 __pycache__/
+*.pyc
+venv/
+.env
+.venv/
+
+# Environment
+.vscode/
+.idea/
+.DS_Store

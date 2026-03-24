@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quishy</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@700&family=Space+Grotesk:wght@400;600;700&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --black: #000;
+            --white: #fff;
+            --gray-card: #1a1a1a;
+            --card-bg: #2a2a2a;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--black);
+            color: var(--white);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* NAV */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 36px;
+            height: 52px;
+        }
+
+        .nav-logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: var(--black);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--black);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .nav-btn {
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            border-radius: 999px;
+            padding: 8px 22px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        /* HERO */
+        #home {
+            position: relative;
+            background: var(--black);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: clip;
+            padding-top: 52px;
+        }
+
+        .hero-headline {
+            font-family: 'Barlow Condensed', 'Bebas Neue', sans-serif;
+            font-weight: 700;
+            font-size: clamp(1.8rem, 4vw, 2.6rem);
+            color: var(--white);
+            text-align: center;
+            line-height: 1.2;
+            max-width: 640px;
+            z-index: 2;
+        }
+
+        .hero-btn {
+            margin-top: 36px;
+            background: var(--white);
+            color: var(--black);
+            border: none;
+            border-radius: 999px;
+            padding: 14px 46px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .ticker-wrap {
+            position: absolute;
+            bottom: 15%;
+            right: -5%;
+            width: 72%;
+            transform: rotate(-32deg);
+            transform-origin: center center;
+            background: var(--white);
+            overflow: hidden;
+            white-space: nowrap;
+            z-index: 3;
+        }
+
+        .ticker-track {
+            display: inline-flex;
+            animation: tickerMove 28s linear infinite;
+        }
+
+        .ticker-track span {
+            color: var(--black);
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            padding: 6px 0;
+            letter-spacing: 0.02em;
+        }
+
+        .ticker-track span .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--black);
+            border-radius: 50%;
+            margin: 0 18px;
+            vertical-align: middle;
+        }
+
+        @keyframes tickerMove {
+            0% {
+                transform: translateX(0)
+            }
+
+            100% {
+                transform: translateX(-50%)
+            }
+        }
+
+        /* SOCIAL SECTION */
+        #social {
+            background: var(--black);
+            padding: 80px 40px 80px;
+            text-align: center;
+        }
+
+        #social h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: clamp(2rem, 5vw, 2.8rem);
+            color: var(--white);
+            margin-bottom: 52px;
+        }
+
+        .team-cards {
+            display: flex;
+            gap: 22px;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        .team-card {
+            background: var(--card-bg);
+            border-radius: 22px;
+            padding: 28px 22px 24px;
+            width: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0;
+        }
+
+        .team-card .role {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--white);
+            line-height: 1.3;
+            margin-bottom: 32px;
+        }
+
+        .team-card .by-label {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: var(--white);
+            margin-bottom: 10px;
+        }
+
+        .team-card .name {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--white);
+            line-height: 1.35;
+            margin-bottom: 28px;
+        }
+
+        .team-card .socials {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .team-card .socials a {
+            color: var(--white);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            transition: opacity 0.2s;
+        }
+
+        .team-card .socials a:hover {
+            opacity: 0.7;
+        }
+
+        .team-card .socials svg {
+            width: 22px;
+            height: 22px;
+            fill: var(--white);
+        }
+
+        /* ABOUT */
+        #about {
+            background: var(--black);
+            padding: 80px 40px 60px;
+            text-align: center;
+        }
+
+        #about h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: clamp(2rem, 5vw, 2.8rem);
+            color: var(--white);
+            margin-bottom: 48px;
+        }
+
+        .cards {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+            max-width: 960px;
+            margin: 0 auto 56px;
+        }
+
+        .card {
+            background: var(--gray-card);
+            border-radius: 16px;
+            padding: 30px 24px;
+            flex: 1;
+            min-width: 240px;
+            max-width: 290px;
+            text-align: center;
+        }
+
+        .card h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.05rem;
+            color: var(--white);
+            margin-bottom: 18px;
+            line-height: 1.3;
+        }
+
+        .card p {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #e0e0e0;
+        }
+
+        .card ul {
+            list-style: none;
+            text-align: left;
+            padding: 0;
+        }
+
+        .card ul li {
+            font-size: 0.9rem;
+            color: #e0e0e0;
+            padding: 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card ul li::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--white);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .tagline {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: clamp(1.2rem, 3vw, 1.6rem);
+            color: var(--white);
+            margin-top: 8px;
+        }
+
+        /* SCAN PAGE OVERLAY */
+        #scan-page {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: var(--black);
+            z-index: 200;
+            flex-direction: column;
+        }
+
+        #scan-page.active {
+            display: flex;
+        }
+
+        .scan-nav {
+            background: var(--white);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 36px;
+            height: 52px;
+            flex-shrink: 0;
+        }
+
+        .scan-nav .sn-logo {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.15rem;
+            color: var(--black);
+            cursor: pointer;
+        }
+
+        .scan-nav ul {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+        }
+
+        .scan-nav ul li {
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: var(--black);
+        }
+
+        .scan-nav .nav-btn {
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            border-radius: 999px;
+            padding: 8px 22px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .scan-body {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 32px;
+            padding: 40px;
+            flex-wrap: wrap;
+        }
+
+        .scan-panel {
+            background: #2a2a2a;
+            border-radius: 20px;
+            width: 340px;
+            height: 280px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #upload-panel {
+            cursor: pointer;
+            border: 2px dashed transparent;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        #upload-panel.drag-over {
+            border-color: #5a8a5a;
+            background: #1e2e1e;
+        }
+
+        #upload-panel input[type="file"] {
+            display: none;
+        }
+
+        .upload-label {
+            color: #aaa;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .upload-sub {
+            color: #666;
+            font-size: 0.75rem;
+            margin-top: 8px;
+            pointer-events: none;
+            text-align: center;
+        }
+
+        .upload-icons {
+            display: flex;
+            gap: 12px;
+            margin-top: 18px;
+        }
+
+        .upload-icon-btn {
+            background: #3a3a3a;
+            border: none;
+            border-radius: 10px;
+            padding: 7px 14px;
+            color: #bbb;
+            font-size: 0.72rem;
+            font-family: 'Space Grotesk', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            pointer-events: all;
+        }
+
+        .upload-icon-btn:hover {
+            background: #484848;
+            color: #fff;
+        }
+
+        #preview-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+            padding: 12px;
+        }
+
+        .clear-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.65);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+
+        #results-panel {
+            align-items: flex-start;
+            justify-content: flex-start;
+            padding: 24px;
+        }
+
+        .results-title {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #aaa;
+            margin-bottom: 14px;
+        }
+
+        #result-content {
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .result-placeholder {
+            width: 4px;
+            height: 40px;
+            background: #3a5a3a;
+            border-radius: 4px;
+        }
+
+        .result-url-box {
+            background: #1a1a1a;
+            border-radius: 10px;
+            padding: 12px 14px;
+            width: 100%;
+            word-break: break-all;
+            font-size: 0.8rem;
+            color: #ccc;
+        }
+
+        .result-url-box a {
+            color: #6dbf6d;
+            text-decoration: none;
+        }
+
+        .result-url-box a:hover {
+            text-decoration: underline;
+        }
+
+        .result-badge {
+            border-radius: 8px;
+            padding: 5px 14px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .result-badge.safe {
+            background: #1a3a1a;
+            color: #6dbf6d;
+        }
+
+        .result-badge.error {
+            background: #3a1a1a;
+            color: #c86a6a;
+        }
+
+        .scan-action-btn {
+            background: var(--white);
+            color: var(--black);
+            border: none;
+            border-radius: 999px;
+            padding: 9px 28px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .scan-action-btn:hover {
+            background: #e0e0e0;
+        }
+
+        /* Camera modal */
+        #camera-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.88);
+            z-index: 300;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #camera-modal.active {
+            display: flex;
+        }
+
+        .camera-box {
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            width: 400px;
+        }
+
+        .camera-box h3 {
+            color: white;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+        }
+
+        #camera-video {
+            width: 100%;
+            border-radius: 12px;
+            background: #000;
+            max-height: 280px;
+        }
+
+        .camera-btns {
+            display: flex;
+            gap: 12px;
+        }
+
+        .cam-btn {
+            background: white;
+            color: black;
+            border: none;
+            border-radius: 999px;
+            padding: 8px 24px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .cam-btn.secondary {
+            background: #3a3a3a;
+            color: white;
+        }
+
+        #qr-canvas {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <a href="#home" class="nav-logo">Quishy</a>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#social">Social</a></li>
+            <li><button class="nav-btn" onclick="openScan()">Scan now</button></li>
+        </ul>
+    </nav>
+
+    <!-- HERO -->
+    <section id="home">
+        <p class="hero-headline">Don't let a QR code compromise your data<br>Scan first, click second.</p>
+        <button class="hero-btn" onclick="openScan()">Scan Now</button>
+        <div class="ticker-wrap">
+            <div class="ticker-track">
+                <span>Scan with Confidence. Surf with Quishy.<span class="dot"></span>Scan with Confidence. Surf with
+                    Quishy.<span class="dot"></span>Scan with Confidence. Surf with Quishy.<span class="dot"></span>Scan
+                    with Confidence. Surf with Quishy.<span class="dot"></span>Scan with Confidence. Surf with
+                    Quishy.<span class="dot"></span>Scan with Confidence. Surf with Quishy.<span
+                        class="dot"></span></span>
+                <span>Scan with Confidence. Surf with Quishy.<span class="dot"></span>Scan with Confidence. Surf with
+                    Quishy.<span class="dot"></span>Scan with Confidence. Surf with Quishy.<span class="dot"></span>Scan
+                    with Confidence. Surf with Quishy.<span class="dot"></span>Scan with Confidence. Surf with
+                    Quishy.<span class="dot"></span>Scan with Confidence. Surf with Quishy.<span
+                        class="dot"></span></span>
+            </div>
+        </div>
+    </section>
+
+    <!-- SOCIAL SECTION -->
+    <section id="social">
+        <h2>Social</h2>
+        <div class="team-cards">
+
+            <!-- Alan -->
+            <div class="team-card">
+                <p class="role">Web Design<br>&amp;<br>Web Develop</p>
+                <p class="by-label">By,</p>
+                <p class="name">Alan M<br>Varghese</p>
+                <div class="socials">
+                    <a href="#" aria-label="GitHub">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+                        </svg>
+                    </a>
+                    <a href="#" aria-label="Instagram">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Antony -->
+            <div class="team-card">
+                <p class="role">Web Design<br>&amp;<br>Web Develop</p>
+                <p class="by-label">By,</p>
+                <p class="name">Antony<br>George<br>Mampilly</p>
+                <div class="socials">
+                    <a href="#" aria-label="GitHub">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+                        </svg>
+                    </a>
+                    <a href="#" aria-label="Instagram">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Aaisha -->
+            <div class="team-card">
+                <p class="role">Web Design<br>&amp;<br>Web Develop</p>
+                <p class="by-label">By,</p>
+                <p class="name">Aaisha M<br>Najeeb</p>
+                <div class="socials">
+                    <a href="#" aria-label="GitHub">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+                        </svg>
+                    </a>
+                    <a href="#" aria-label="Instagram">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Jiss -->
+            <div class="team-card">
+                <p class="role">Web Design<br>&amp;<br>Web Develop</p>
+                <p class="by-label">By,</p>
+                <p class="name">Jiss<br>Maria<br>Jose</p>
+                <div class="socials">
+                    <a href="#" aria-label="GitHub">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+                        </svg>
+                    </a>
+                    <a href="#" aria-label="Instagram">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about">
+        <h2>About Us</h2>
+        <div class="cards">
+            <div class="card">
+                <h3>Our Mission</h3>
+                <p>At Quishy, we believe that curiosity shouldn't lead to a compromise. In an era where a single QR code
+                    or a shortened link can lead to identity theft, financial loss, or malware, we've hbuilt a shield.
+                    Our mission is simple: To empower users to explore the digital world without the fear of being
+                    phished.</p>
+            </div>
+            <div class="card">
+                <h3>The Problem<br>We're Solving</h3>
+                <p>The "Quick Response" (QR) code was designed for convenience, but it has become a favorite tool for
+                    cybercriminals. From "quishing" (QR phishing) to malicious URL redirects, it is becoming harder to
+                    know what is on the other side of a scan.<br><br>Most people don't realize a link is dangerous until
+                    it's too late.<br>Quishy changes that.</p>
+            </div>
+            <div class="card">
+                <h3>Why Choose<br>Quishy?</h3>
+                <ul>
+                    <li>Speed Meets Security</li>
+                    <li>Zero Trust Architecture</li>
+                    <li>User-Centric Design</li>
+                </ul>
+            </div>
+        </div>
+        <p class="tagline">"Don't just scan it. Quishy it"</p>
+    </section>
+
+    <!-- SCAN PAGE OVERLAY (only shown on Scan Now click) -->
+    <div id="scan-page">
+        <nav class="scan-nav">
+            <span class="sn-logo" onclick="closeScan()">Quishy</span>
+            <ul>
+                <li onclick="closeScan()">Home</li>
+                <li
+                    onclick="closeScan(); setTimeout(()=>document.getElementById('about').scrollIntoView({behavior:'smooth'}),120)">
+                    About</li>
+                <li
+                    onclick="closeScan(); setTimeout(()=>document.getElementById('social').scrollIntoView({behavior:'smooth'}),120)">
+                    Social</li>
+                <li><button class="nav-btn">Scan now</button></li>
+            </ul>
+        </nav>
+        <div class="scan-body">
+            <div class="scan-panel" id="upload-panel" onclick="triggerUpload(event)" ondragover="onDragOver(event)"
+                ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+                <input type="file" id="file-input" accept="image/*" onchange="handleFile(this.files[0])" />
+                <img id="preview-img" alt="QR preview" />
+                <button class="clear-btn" id="clear-btn" onclick="clearImage(event)">&#x2715;</button>
+                <div id="upload-placeholder" style="display:flex;flex-direction:column;align-items:center;">
+                    <p class="upload-label">upload your QR</p>
+                    <p class="upload-sub">drag &amp; drop or choose below</p>
+                    <div class="upload-icons">
+                        <button class="upload-icon-btn" onclick="triggerFileInput(event)">&#x1F5BC; Gallery</button>
+                        <button class="upload-icon-btn" onclick="openCamera(event)">&#x1F4F7; Camera</button>
+                    </div>
+                </div>
+            </div>
+            <div class="scan-panel" id="results-panel">
+                <p class="results-title">Results</p>
+                <div id="result-content">
+                    <div class="result-placeholder"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CAMERA MODAL -->
+    <div id="camera-modal">
+        <div class="camera-box">
+            <h3>Scan with Camera</h3>
+            <video id="camera-video" autoplay playsinline></video>
+            <canvas id="qr-canvas"></canvas>
+            <div class="camera-btns">
+                <button class="cam-btn" onclick="captureFromCamera()">Capture</button>
+                <button class="cam-btn secondary" onclick="closeCamera()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openScan() {
+            document.getElementById('scan-page').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeScan() {
+            document.getElementById('scan-page').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        function triggerUpload(e) {
+            if (e.target.closest('.upload-icon-btn') || e.target.closest('.clear-btn')) return;
+            if (document.getElementById('preview-img').style.display === 'block') return;
+            document.getElementById('file-input').click();
+        }
+        function triggerFileInput(e) {
+            e.stopPropagation();
+            document.getElementById('file-input').click();
+        }
+        function onDragOver(e) {
+            e.preventDefault();
+            document.getElementById('upload-panel').classList.add('drag-over');
+        }
+        function onDragLeave() {
+            document.getElementById('upload-panel').classList.remove('drag-over');
+        }
+        function onDrop(e) {
+            e.preventDefault();
+            document.getElementById('upload-panel').classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) handleFile(file);
+        }
+        function handleFile(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+                const img = document.getElementById('preview-img');
+                img.src = ev.target.result;
+                img.style.display = 'block';
+                document.getElementById('upload-placeholder').style.display = 'none';
+                document.getElementById('clear-btn').style.display = 'flex';
+                decodeQR(ev.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+        function clearImage(e) {
+            e.stopPropagation();
+            document.getElementById('preview-img').style.display = 'none';
+            document.getElementById('preview-img').src = '';
+            document.getElementById('upload-placeholder').style.display = 'flex';
+            document.getElementById('clear-btn').style.display = 'none';
+            document.getElementById('file-input').value = '';
+            resetResults();
+        }
+        function decodeQR(dataUrl) {
+            showResultLoading();
+            // Send Base64 image to backend for structural and URL analysis
+            fetch('/api/scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: dataUrl })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const isSafe = (data.status === "Safe");
+                showResult(data.reason, isSafe);
+            })
+            .catch(err => {
+                showResult('Server error evaluating QR code.', false);
+            });
+        }
+        function showResultLoading() {
+            document.getElementById('result-content').innerHTML =
+                '<p style="color:#888;font-size:0.85rem;font-family:\'Space Grotesk\',sans-serif;">Scanning securely via Quishy Backend...</p>';
+        }
+        function showResult(reasonText, isSafe) {
+            // Find URL if it exists inside the text
+            const urlMatch = reasonText.match(/https?:\/\/[^\s<"]+/i);
+            const urlText = urlMatch ? urlMatch[0] : null;
+            
+            const badgeClass = isSafe ? "safe" : "error";
+            const badgeIcon = isSafe ? "&#x2713; Security Check Passed" : "&#x2715; Alert";
+
+            document.getElementById('result-content').innerHTML =
+                '<span class="result-badge ' + badgeClass + '">' + badgeIcon + '</span>' +
+                '<div class="result-url-box">' +
+                '<span>' + reasonText + '</span>' +
+                '</div>' +
+                (urlText && isSafe ? '<button class="scan-action-btn" onclick="window.open(\'' + urlText + '\',\'_blank\')">Open Link</button>' : '');
+        }
+        function showResultError(msg) {
+            showResult(msg, false);
+        }
+        function resetResults() {
+            document.getElementById('result-content').innerHTML = '<div class="result-placeholder"></div>';
+        }
+
+        let cameraStream = null, cameraInterval = null;
+        function openCamera(e) {
+            e.stopPropagation();
+            document.getElementById('camera-modal').classList.add('active');
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                .then(stream => {
+                    cameraStream = stream;
+                    const video = document.getElementById('camera-video');
+                    video.srcObject = stream;
+                    cameraInterval = setInterval(() => {
+                        const canvas = document.getElementById('qr-canvas');
+                        if (!video.videoWidth) return;
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(video, 0, 0);
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        // We will use jsQR purely to know WHEN a QR is visible in camera
+                        const code = jsQR(imageData.data, imageData.width, imageData.height);
+                        if (code) {
+                            const dataUrl = canvas.toDataURL('image/png');
+                            const img = document.getElementById('preview-img');
+                            img.src = dataUrl;
+                            img.style.display = 'block';
+                            document.getElementById('upload-placeholder').style.display = 'none';
+                            document.getElementById('clear-btn').style.display = 'flex';
+                            closeCamera();
+                            // Pass to backend instead of local evaluation
+                            decodeQR(dataUrl);
+                        }
+                    }, 300);
+                })
+                .catch(() => { closeCamera(); alert('Camera access denied or unavailable.'); });
+        }
+        function captureFromCamera() {
+            const video = document.getElementById('camera-video');
+            const canvas = document.getElementById('qr-canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            const dataUrl = canvas.toDataURL('image/png');
+            const img = document.getElementById('preview-img');
+            img.src = dataUrl;
+            img.style.display = 'block';
+            document.getElementById('upload-placeholder').style.display = 'none';
+            document.getElementById('clear-btn').style.display = 'flex';
+            closeCamera();
+            decodeQR(dataUrl);
+        }
+        function closeCamera() {
+            if (cameraInterval) { clearInterval(cameraInterval); cameraInterval = null; }
+            if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+            document.getElementById('camera-video').srcObject = null;
+            document.getElementById('camera-modal').classList.remove('active');
+        }
+    </script>
+</body>
+
+</html>
