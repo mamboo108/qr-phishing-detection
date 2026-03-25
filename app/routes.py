@@ -60,9 +60,10 @@ def api_scan():
         
     report = analyze_qr(path, text_data)
     
-    # Optional cleanup of the file if not needed:
-    # os.remove(path)
-    
+    # Clean up the temporary file immediately after processing
+    if os.path.exists(path):
+        os.remove(path)
+        
     if "reason" in report:
         report["reason"] = html.escape(report["reason"])
         

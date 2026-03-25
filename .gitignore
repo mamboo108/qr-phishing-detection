@@ -1,12 +1,10 @@
 # Datasets and Media
 dataset/
-url_dataset/
+
 uploads/
 *.csv
 
-# Models
-*.pkl
-*.pk1
+
 
 # Python
 __pycache__/

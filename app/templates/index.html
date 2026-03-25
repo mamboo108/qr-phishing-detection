@@ -8,7 +8,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@700&family=Space+Grotesk:wght@400;600;700&display=swap"
         rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <style>
         *,
         *::before,
@@ -340,6 +340,51 @@
             margin-top: 8px;
         }
 
+        /* UPI Details Grid */
+        #details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 14px;
+            width: 100%;
+        }
+
+        .detail-cell {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        .detail-cell .cell-label {
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: #888;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+        }
+
+        .detail-cell .cell-value {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #ccc;
+            word-break: break-word;
+        }
+
+        .upi-handle-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 5px 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+            background: #1a3a4a;
+            color: #6dbfdb;
+        }
+
         /* SCAN PAGE OVERLAY */
         #scan-page {
             display: none;
@@ -588,6 +633,15 @@
 
         .scan-action-btn:hover {
             background: #e0e0e0;
+        }
+
+        .scan-action-btn.caution {
+            background: #f1c40f;
+            color: #1a1a1a;
+        }
+
+        .scan-action-btn.caution:hover {
+            background: #d4ac0d;
         }
 
         /* Camera modal */
@@ -925,33 +979,171 @@
             }
             const image = new Image();
             image.onload = function () {
-                const MAX_WIDTH = 800; // Limit processing sizes
-                let width = image.width;
-                let height = image.height;
-                if (width > MAX_WIDTH) {
-                    height = Math.round((height * MAX_WIDTH) / width);
-                    width = MAX_WIDTH;
-                }
-                
-                const canvas = document.getElementById('qr-canvas');
-                canvas.width = width;
-                canvas.height = height;
+                const canvas = document.createElement('canvas'); // Use isolated canvas to avoid camera-loop conflicts
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(image, 0, 0, width, height);
                 
-                let codeText = null;
-                try {
-                    const imageData = ctx.getImageData(0, 0, width, height);
-                    const code = jsQR(imageData.data, width, height);
-                    if (code) codeText = code.data;
-                } catch (e) {
-                    console.error("jsQR Error", e);
+                let result = null;
+
+                // Attempt 1: Original size
+                canvas.width = image.width;
+                canvas.height = image.height;
+                ctx.drawImage(image, 0, 0);
+                result = tryDecode(canvas, ctx);
+
+                // Attempt 2: Resize to 400x400
+                if (!result) {
+                    canvas.width = 400;
+                    canvas.height = 400;
+                    ctx.drawImage(image, 0, 0, 400, 400);
+                    result = tryDecode(canvas, ctx);
+                }
+
+                // Attempt 3: High contrast + Grayscale (Original size)
+                if (!result) {
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+                    ctx.filter = 'contrast(160%) grayscale(100%)';
+                    ctx.drawImage(image, 0, 0);
+                    ctx.filter = 'none';
+                    result = tryDecode(canvas, ctx);
+                }
+
+                // Attempt 4: Threshold Binarization (Original size)
+                if (!result) {
+                    canvas.width = image.width;
+                    canvas.height = image.height;
+                    ctx.drawImage(image, 0, 0);
+                    binarize(canvas, ctx, 128);
+                    result = tryDecode(canvas, ctx);
                 }
                 
-                const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                let codeText = result ? result.data : null;
+                
+                // If it's a payment/UPI QR code, process it ENTIRELY on the frontend
+                if (codeText && (codeText.toLowerCase().startsWith('upi://') || codeText.toLowerCase().includes('pa='))) {
+                    document.getElementById('result-content').innerHTML = ''; // Clear loading state
+                    processUPIOnFrontend(codeText);
+                    return;
+                }
+                
+                // Otherwise, it's a standard URL/QR, so resize and send to ML backend
+                const upCanvas = document.createElement('canvas');
+                const MAX_UPLOAD_WIDTH = 800;
+                let upWidth = image.width;
+                let upHeight = image.height;
+                if (upWidth > MAX_UPLOAD_WIDTH) {
+                    upHeight = Math.round((upHeight * MAX_UPLOAD_WIDTH) / upWidth);
+                    upWidth = MAX_UPLOAD_WIDTH;
+                }
+                upCanvas.width = upWidth;
+                upCanvas.height = upHeight;
+                upCanvas.getContext('2d').drawImage(image, 0, 0, upWidth, upHeight);
+                const resizedDataUrl = upCanvas.toDataURL('image/jpeg', 0.8);
+                
                 sendToBackend(resizedDataUrl, codeText);
             };
             image.src = dataUrl;
+        }
+
+        // --- Frontend UPI Extractor & Discrepancy Checker ---
+        const HANDLES = {
+            okaxis: 'GPay (Axis Bank)', okhdfcbank: 'GPay (HDFC Bank)', okicici: 'GPay (ICICI Bank)',
+            oksbi: 'GPay (SBI)', ybl: 'PhonePe (Yes Bank)', ibl: 'PhonePe (IndusInd Bank)',
+            axl: 'PhonePe (Axis Bank)', paytm: 'Paytm', ptaxis: 'Paytm (Axis Bank)', pthdfc: 'Paytm (HDFC)',
+            upi: 'BHIM UPI', bhim: 'BHIM', apl: 'Amazon Pay', jupiteraxis: 'Jupiter'
+        };
+
+        function processUPIOnFrontend(raw) {
+            let upiId = null, name = null, amount = null, currency = 'INR', note = null;
+
+            if (raw.toLowerCase().startsWith('upi://')) {
+                try {
+                    const url = new URL(raw);
+                    upiId    = url.searchParams.get('pa');
+                    name     = url.searchParams.get('pn');
+                    amount   = url.searchParams.get('am');
+                    currency = url.searchParams.get('cu') || 'INR';
+                    note     = url.searchParams.get('tn');
+                } catch (e) {
+                    const pa = raw.match(/[?&]pa=([^&]+)/i);
+                    if (pa) upiId = decodeURIComponent(pa[1]);
+                }
+            } else {
+                const pa = raw.match(/[?&]pa=([^&]+)/i);
+                if (pa) upiId = decodeURIComponent(pa[1]);
+            }
+
+            if (!upiId) {
+                showResultError("QR is a payment format but standard UPI ID could not be extracted.");
+                return;
+            }
+
+            let handle = upiId.includes('@') ? upiId.split('@')[1].toLowerCase() : null;
+            let provider = handle ? HANDLES[handle] : null;
+
+            let upiDetails = {
+                id: upiId,
+                name: name,
+                amount: amount,
+                currency: currency,
+                note: note,
+                provider: provider
+            };
+
+            // Discrepancy Checks
+            let safe = true;
+            let reason = `Verified Payment QR for ${name || 'Unknown'} (${provider || 'Unknown Handle'}).`;
+
+            if (!name) {
+                safe = false;
+                reason = `Payment QR detected but Payee Name is MISSING. High risk of fraud.`;
+            } else if (!handle || !upiId.includes('@')) {
+                safe = false;
+                reason = `Payment QR detected but Payee ID (${upiId}) is malformed. Proceed with caution.`;
+            } else {
+                const suspicious_keywords = ['cashback', 'refund', 'lucky', 'winner', 'support', 'helpdesk'];
+                let n_lower = (note || "").toLowerCase();
+                let nm_lower = (name || "").toLowerCase();
+                suspicious_keywords.forEach(kw => {
+                    if (n_lower.includes(kw) || nm_lower.includes(kw)) {
+                        safe = false;
+                        reason = `Suspicious keyword '${kw}' detected. May be a social engineering scam.`;
+                    }
+                });
+            }
+
+            if (safe && !provider) {
+                reason = `Valid UPI QR for ${name}, but handle '@${handle}' is not highly recognized.`;
+            }
+
+            // Mock a data object that is expected by showResult
+            const dataObj = {
+                status: safe ? "Safe" : "Fake",
+                reason: reason,
+                upi_details: upiDetails,
+                url_data: raw
+            };
+
+            showResult(dataObj, safe);
+        }
+
+        function tryDecode(canvas, ctx) {
+            try {
+                const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                return jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'dontInvert' }) ||
+                       jsQR(imgData.data, imgData.width, imgData.height, { inversionAttempts: 'invertFirst' });
+            } catch(e) { return null; }
+        }
+
+        function binarize(canvas, ctx, threshold) {
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const d = imgData.data;
+            for (let i = 0; i < d.length; i += 4) {
+                const avg = (d[i] + d[i+1] + d[i+2]) / 3;
+                const v = avg > threshold ? 255 : 0;
+                d[i] = d[i+1] = d[i+2] = v;
+            }
+            ctx.putImageData(imgData, 0, 0);
         }
 
         function sendToBackend(dataUrl, textPayload) {
@@ -963,7 +1155,7 @@
             .then(res => res.json())
             .then(data => {
                 const isSafe = (data.status === "Safe" || data.status.includes("SAFE"));
-                showResult(data.reason, isSafe);
+                showResult(data, isSafe);
             })
             .catch(err => {
                 showResultError('Server error evaluating QR code.');
@@ -973,20 +1165,62 @@
             document.getElementById('result-content').innerHTML =
                 '<p style="color:#888;font-size:0.85rem;font-family:\'Space Grotesk\',sans-serif;">Scanning securely via Quishy Backend...</p>';
         }
-        function showResult(reasonText, isSafe) {
-            // Find URL if it exists inside the text
-            const urlMatch = reasonText.match(/https?:\/\/[^\s<"]+/i);
-            const urlText = urlMatch ? urlMatch[0] : null;
+        function showResult(data, isSafe) {
+            // Support backward compatibility if a string is passed
+            const reasonText = typeof data === 'string' ? data : data.reason;
+            const upiDetails = data.upi_details;
+
+            // Prefer explicit url_data from backend, otherwise fallback to regex extraction
+            let urlText = data.url_data || null;
+            if (!urlText) {
+                const urlMatch = reasonText.match(/https?:\/\/[^\s<"]+/i);
+                urlText = urlMatch ? urlMatch[0] : null;
+            }
             
             const badgeClass = isSafe ? "safe" : "error";
             const badgeIcon = isSafe ? "&#x2713; Security Check Passed" : "&#x2715; Alert";
 
-            document.getElementById('result-content').innerHTML =
-                '<span class="result-badge ' + badgeClass + '">' + badgeIcon + '</span>' +
-                '<div class="result-url-box">' +
-                '<span>' + reasonText + '</span>' +
-                '</div>' +
-                (urlText && isSafe ? '<button class="scan-action-btn" onclick="window.open(\'' + urlText + '\',\'_blank\')">Open Link</button>' : '');
+            let htmlArr = [
+                '<span class="result-badge ' + badgeClass + '">' + badgeIcon + '</span>',
+                '<div class="result-url-box">',
+                '<span>' + reasonText + '</span>',
+                '</div>'
+            ];
+
+            if (upiDetails) {
+                const amountText = upiDetails.amount ? `${upiDetails.currency || 'INR'} ${upiDetails.amount}` : '-';
+                const nameText = upiDetails.name || 'Unknown Payee';
+                const noteText = upiDetails.note || '-';
+                
+                let gridHtml = '<div id="details-grid">';
+                gridHtml += `<div class="detail-cell"><p class="cell-label">Payee</p><p class="cell-value">${nameText}</p></div>`;
+                gridHtml += `<div class="detail-cell"><p class="cell-label">Amount</p><p class="cell-value">${amountText}</p></div>`;
+                gridHtml += `<div class="detail-cell"><p class="cell-label">UPI ID</p><p class="cell-value">${upiDetails.id || '-'}</p></div>`;
+                gridHtml += `<div class="detail-cell"><p class="cell-label">Note</p><p class="cell-value">${noteText}</p></div>`;
+                gridHtml += '</div>';
+
+                if (upiDetails.provider) {
+                    gridHtml += `<div class="upi-handle-badge">&#x1F3E6; ${upiDetails.provider}</div>`;
+                }
+
+                htmlArr.push(gridHtml);
+                
+                // Also give option to open the UPI app link
+                if (!isSafe) {
+                    htmlArr.push('<button class="scan-action-btn caution" onclick="window.location.href=\'' + urlText + '\'">Proceed with Caution (Open App)</button>');
+                } else if (urlText) {
+                    htmlArr.push('<button class="scan-action-btn" onclick="window.location.href=\'' + urlText + '\'">Open Payment App</button>');
+                }
+                
+            } else if (urlText) {
+                if (isSafe) {
+                    htmlArr.push('<button class="scan-action-btn" onclick="window.open(\'' + urlText + '\',\'_blank\')">Open Link</button>');
+                } else {
+                    htmlArr.push('<button class="scan-action-btn caution" onclick="window.open(\'' + urlText + '\',\'_blank\')">Proceed with Caution (Open Link)</button>');
+                }
+            }
+
+            document.getElementById('result-content').innerHTML = htmlArr.join('');
         }
         function showResultError(msg) {
             showResult(msg, false);
