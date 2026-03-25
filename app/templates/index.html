@@ -838,28 +838,22 @@
 
     <!-- ABOUT -->
     <section id="about">
-        <h2>About Us</h2>
+        <h2>About Quishy</h2>
         <div class="cards">
             <div class="card">
                 <h3>Our Mission</h3>
-                <p>At Quishy, we believe that curiosity shouldn't lead to a compromise. In an era where a single QR code
-                    or a shortened link can lead to identity theft, financial loss, or malware, we've hbuilt a shield.
-                    Our mission is simple: To empower users to explore the digital world without the fear of being
-                    phished.</p>
+                <p>At Quishy, we believe that convenience shouldn't require a compromise on security. As QR codes increasingly become the gateway to payments, menus, and digital services, they've also become a prime vector for cyberattacks. Our mission is to build an intelligent, frictionless shield that empowers you to scan the physical world without the fear of being phished, tracked, or scammed.</p>
             </div>
             <div class="card">
-                <h3>The Problem<br>We're Solving</h3>
-                <p>The "Quick Response" (QR) code was designed for convenience, but it has become a favorite tool for
-                    cybercriminals. From "quishing" (QR phishing) to malicious URL redirects, it is becoming harder to
-                    know what is on the other side of a scan.<br><br>Most people don't realize a link is dangerous until
-                    it's too late.<br>Quishy changes that.</p>
+                <h3>The Threat Landscape</h3>
+                <p>The rise of "quishing" (QR phishing) has introduced invisible threats to everyday life. Attackers place malicious sticker overlays on legitimate parking meters or café tables, redirecting unaware victims to credential-harvesting websites or authorizing fraudulent UPI payments. Because the human eye cannot decipher a QR code's destination directly, these attacks have devastating success rates.</p>
             </div>
             <div class="card">
-                <h3>Why Choose<br>Quishy?</h3>
-                <ul>
-                    <li>Speed Meets Security</li>
-                    <li>Zero Trust Architecture</li>
-                    <li>User-Centric Design</li>
+                <h3>How It Works</h3>
+                <ul style="padding-left: 1rem; line-height: 1.6; margin-top: 0.5rem; font-size: 0.95rem; color: #666;">
+                    <li><strong>Computer Vision Analysis:</strong> Uses trained ML models to detect physical anomalies like tampered or overlaid sticker artifacts on the QR code.</li>
+                    <li><strong>Link Verification:</strong> Employs Levenshtein distance matching alongside AI classification to block misspelled domains and verified threats.</li>
+                    <li><strong>Smart Payment Defense:</strong> Intercepts GPay and PhonePe QR codes natively, performing deep heuristic checks on the payee ID to prevent social engineering scams.</li>
                 </ul>
             </div>
         </div>
