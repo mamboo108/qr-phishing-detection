@@ -275,61 +275,89 @@
 
         .cards {
             display: flex;
-            gap: 24px;
+            gap: 30px;
             justify-content: center;
             flex-wrap: wrap;
-            max-width: 960px;
+            max-width: 1100px;
             margin: 0 auto 56px;
         }
 
         .card {
-            background: var(--gray-card);
-            border-radius: 16px;
-            padding: 30px 24px;
+            background: linear-gradient(145deg, #1f1f1f, #151515);
+            border: 1px solid #333;
+            border-radius: 20px;
+            padding: 36px 30px;
             flex: 1;
-            min-width: 240px;
-            max-width: 290px;
-            text-align: center;
+            min-width: 280px;
+            max-width: 320px;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+            border-color: #555;
         }
 
         .card h3 {
             font-family: 'Space Grotesk', sans-serif;
             font-weight: 700;
-            font-size: 1.05rem;
+            font-size: 1.35rem;
             color: var(--white);
-            margin-bottom: 18px;
+            margin-bottom: 20px;
             line-height: 1.3;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
+        .card:nth-child(1) h3::before { content: '🛡️'; font-size: 1.4rem; }
+        .card:nth-child(2) h3::before { content: '⚠️'; font-size: 1.4rem; }
+        .card:nth-child(3) h3::before { content: '⚙️'; font-size: 1.4rem; }
+
         .card p {
-            font-size: 0.85rem;
-            line-height: 1.6;
-            color: #e0e0e0;
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: #b3b3b3;
+            flex-grow: 1;
         }
 
         .card ul {
             list-style: none;
-            text-align: left;
             padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            flex-grow: 1;
         }
 
         .card ul li {
-            font-size: 0.9rem;
-            color: #e0e0e0;
-            padding: 6px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            font-size: 0.92rem;
+            line-height: 1.6;
+            color: #b3b3b3;
+            padding-left: 22px;
+            position: relative;
         }
 
         .card ul li::before {
             content: '';
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: var(--white);
+            position: absolute;
+            left: 0;
+            top: 10px;
+            width: 6px;
+            height: 6px;
+            background: #6dbf6d;
             border-radius: 50%;
-            flex-shrink: 0;
+            box-shadow: 0 0 8px rgba(109, 191, 109, 0.6);
+        }
+
+        .card ul li strong {
+            color: var(--white);
+            font-weight: 700;
         }
 
         .tagline {
@@ -354,6 +382,7 @@
             border-radius: 8px;
             padding: 10px 12px;
             text-align: left;
+            min-width: 0;
         }
 
         .detail-cell .cell-label {
@@ -363,12 +392,16 @@
             color: #888;
             margin-bottom: 3px;
             text-transform: uppercase;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .detail-cell .cell-value {
             font-size: 0.8rem;
             font-weight: 500;
             color: #ccc;
+            overflow-wrap: anywhere;
             word-break: break-word;
         }
 
@@ -451,13 +484,16 @@
             gap: 32px;
             padding: 40px;
             flex-wrap: wrap;
+            overflow-y: auto;
         }
 
         .scan-panel {
             background: #2a2a2a;
             border-radius: 20px;
-            width: 340px;
-            height: 280px;
+            width: 100%;
+            max-width: 360px;
+            min-height: 280px;
+            height: auto;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -586,7 +622,7 @@
             border-radius: 10px;
             padding: 12px 14px;
             width: 100%;
-            word-break: break-all;
+            overflow-wrap: anywhere;
             font-size: 0.8rem;
             color: #ccc;
         }
@@ -707,6 +743,44 @@
 
         #qr-canvas {
             display: none;
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            nav, .scan-nav {
+                padding: 0 16px;
+            }
+            .nav-links li:not(:last-child), .scan-nav ul li:not(:last-child) {
+                display: none; /* Hide standard links to make room for logo and Scan Now button */
+            }
+            .scan-body {
+                padding: 20px 16px;
+                gap: 20px;
+                align-items: flex-start;
+            }
+            .scan-panel {
+                width: 100%;
+                max-width: 100%;
+            }
+            #details-grid {
+                grid-template-columns: 1fr;
+            }
+            #home {
+                padding: 60px 20px 0;
+            }
+            .hero-headline {
+                font-size: 2rem;
+            }
+            .team-cards, .cards {
+                gap: 16px;
+            }
+            .team-card, .card {
+                min-width: 100%;
+                max-width: 100%;
+            }
+            .camera-box {
+                width: 90%;
+            }
         }
     </style>
 </head>
@@ -850,7 +924,7 @@
             </div>
             <div class="card">
                 <h3>How It Works</h3>
-                <ul style="padding-left: 1rem; line-height: 1.6; margin-top: 0.5rem; font-size: 0.95rem; color: #666;">
+                <ul>
                     <li><strong>Computer Vision Analysis:</strong> Uses trained ML models to detect physical anomalies like tampered or overlaid sticker artifacts on the QR code.</li>
                     <li><strong>Link Verification:</strong> Employs Levenshtein distance matching alongside AI classification to block misspelled domains and verified threats.</li>
                     <li><strong>Smart Payment Defense:</strong> Intercepts GPay and PhonePe QR codes natively, performing deep heuristic checks on the payee ID to prevent social engineering scams.</li>
