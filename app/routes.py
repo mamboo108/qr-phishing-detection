@@ -7,33 +7,8 @@ from app import app
 from utils.analyzer import analyze_qr
 from utils.url_analyzer import analyze_url
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
 def index():
-    if request.method == "POST":
-        # Check if the file was actually uploaded
-        if 'qr' not in request.files:
-            return "No file part in the request"
-            
-        file = request.files["qr"]
-        
-        if file.filename == '':
-            return "No file selected"
-
-        # Save the file to the uploads folder
-        path = os.path.join(app.config['UPLOAD_FOLDER'], file.filename)
-        file.save(path)
-
-        # Get the detailed result dictionary from your analyzer
-        report = analyze_qr(path)
-        
-        # Sanitize reason output to prevent XSS manually, just in case template isn't doing it.
-        # Although Jinja auto-escapes, double sanitizing or preparing for safe rendering:
-        if "reason" in report:
-            report["reason"] = html.escape(report["reason"])
-
-        # Pass the report dictionary to result.html
-        return render_template("result.html", report=report)
-
     return render_template("index.html")
 
 

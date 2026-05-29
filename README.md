@@ -134,24 +134,16 @@ Open your browser and navigate to `http://127.0.0.1:5000`.
 
 ---
 
-## ⚠️ Important Implementation Notes & Bug Fixes
+## ⚠️ Important Implementation Notes & Resolved Bugs
 
-While analyzing this codebase, we identified a few critical configuration discrepancies you should fix:
+### 1. Model Filename Mismatch (Resolved)
+* **Status: FIXED.** Previously, [utils/url_analyzer.py](file:///c:/projects/qr-phishing-detection/utils/url_analyzer.py) attempted to load `models/url_model.pkl`, but the file was named `model.pkl` in the repository. This caused the digital ML classifier check to be bypassed. The file has now been renamed to `url_model.pkl`, enabling full machine learning-based URL analysis.
 
-### 1. Model Filename Mismatch (Digital ML Bypass)
-* **The Bug:** [utils/url_analyzer.py](file:///c:/projects/qr-phishing-detection/utils/url_analyzer.py) (line 10) attempts to load the URL classifier from `models/url_model.pkl`. However, in the repository, the model is saved under the name `models/model.pkl`. This causes the load block to fail silently, disabling the ML phishing check.
-* **The Fix:** Rename the model file in your terminal or change the reference in `url_analyzer.py` to `model.pkl`:
-  ```bash
-  # Rename the file to match the source code:
-  mv models/model.pkl models/url_model.pkl
-  ```
+### 2. Unused Template Route (Resolved)
+* **Status: FIXED.** The legacy POST `/` route handler inside [app/routes.py](file:///c:/projects/qr-phishing-detection/app/routes.py) which attempted to render a non-existent `result.html` template has been safely removed. The root route now handles only `GET` requests to load the single-page application (`index.html`).
 
-### 2. Missing Training Datasets
-* **The Issue:** The training scripts in the `scripts/` folder (`train_model.py` and `train_url_model.py`) reference local CSV files such as `safe_urls.csv`, `phishing_urls.csv`, and `qr_features.csv`. These datasets are not committed to the repository, meaning you cannot retrain the models out-of-the-box without bringing your own datasets.
-
-### 3. Unused Template Reference
-* **The Issue:** Inside [app/routes.py](file:///c:/projects/qr-phishing-detection/app/routes.py) (line 35), the POST handler for the `/` route attempts to render a template named `result.html`. This file does not exist in the project (only `index.html` is present).
-* **Why it doesn't break:** The frontend application is fully single-page and interacts with the server asynchronously via the `/api/scan` endpoint. The POST `/` route is legacy code and can be ignored or cleaned up.
+### 3. Missing Training Datasets (Information)
+* **The Issue:** The training scripts in the `scripts/` folder (`train_model.py` and `train_url_model.py`) reference local CSV files such as `safe_urls.csv`, `phishing_urls.csv`, and `qr_features.csv`. These datasets are not committed to the repository. While the pre-trained model files are fully functional, you will need to provide your own CSV datasets if you wish to retrain the classifiers.
 
 ---
 
