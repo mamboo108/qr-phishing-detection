@@ -65,6 +65,41 @@ graph TD
 
 ---
 
+## 👥 Teammates & Contribution Details
+
+The project was designed, developed, and tested by our team:
+
+### 🎨 Alan M. Varghese
+* **Role / Focus**: Frontend Design, UI/UX, Server Setup, and API Integration
+* **Key Contributions**:
+  * Designed the visual identity and styling (black-and-white brutalist aesthetic) in [index.html](file:///c:/Users/anton/qr-phishing-detection/app/templates/index.html).
+  * Built the frontend JS camera-scanning overlay using `jsQR` and implemented the 4-step decoding pipeline (original, resized, high contrast, and client binarization).
+  * Created the Flask backend structure ([__init__.py](file:///c:/Users/anton/qr-phishing-detection/app/__init__.py) and [routes.py](file:///c:/Users/anton/qr-phishing-detection/app/routes.py)), managing API endpoints (`/api/scan`).
+  * Implemented security measures including XSS prevention (`html.escape`), UUID filename randomization, and immediate temp-file cleanup on the server.
+
+### 📊 Antony George Mampilly
+* **Role / Focus**: Structural QR Image Analysis & ML Model Training
+* **Key Contributions**:
+  * Researched and implemented structural feature extraction inside [qr_features.py](file:///c:/Users/anton/qr-phishing-detection/utils/qr_features.py), defining 9 core physical image metrics (such as dark pixel ratio, horizontal/vertical symmetry, grid alignment, and pixel variance).
+  * Orchestrated the primary backend detection pipeline in [analyzer.py](file:///c:/Users/anton/qr-phishing-detection/utils/analyzer.py).
+  * Programmed the training script [train_model.py](file:///c:/Users/anton/qr-phishing-detection/scripts/train_model.py) to train the Random Forest Classifier (`qr_model.pkl`) using 200 decision trees and integrated confidence probability checks (`predict_proba() > 0.70`).
+
+### ⚙️ Aaisha M. Najeeb
+* **Role / Focus**: Pixel-Level Diagnostics & Fallback Decoding
+* **Key Contributions**:
+  * Developed advanced pixel-level analysis for physical check features, including edge density (using Canny edge detection), Gaussian-blurred noise estimation, and image sharpness diagnostics (via Laplacian variance) in [qr_features.py](file:///c:/Users/anton/qr-phishing-detection/utils/qr_features.py).
+  * Designed and implemented the backend image decoding fallback process in [analyzer.py](file:///c:/Users/anton/qr-phishing-detection/utils/analyzer.py) utilizing OpenCV's Otsu's Binarization, allowing successful decoding of blurry, low-contrast, or degraded physical QR scans.
+
+### 🔗 Jiss Maria Jose
+* **Role / Focus**: URL Phishing Detection, UPI Payment Analysis & ML Classifier
+* **Key Contributions**:
+  * Built URL parsing and malicious query check logic in [url_analyzer.py](file:///c:/Users/anton/qr-phishing-detection/utils/url_analyzer.py).
+  * Implemented Levenshtein distance comparison against top safe domains to identify visual look-alike phishing targets (e.g., `g00gle.com`).
+  * Authored the UPI address scanner ([upi_analyzer.py](file:///c:/Users/anton/qr-phishing-detection/utils/upi_analyzer.py)) to parse and flag fraudulent payment URIs (`upi://pay`).
+  * Coded the training logic for the URL ML model ([train_url_model.py](file:///c:/Users/anton/qr-phishing-detection/scripts/train_url_model.py)), extracting 17 features (including Shannon Entropy, digit ratios, and length stats) defined in [url_features.py](file:///c:/Users/anton/qr-phishing-detection/utils/url_features.py) to train `url_model.pkl`.
+
+---
+
 ## 📁 Repository Structure
 
 ```text
